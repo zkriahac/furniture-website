@@ -1,0 +1,36 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "furniture",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "hrskript",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /opt/homebrew/var/www/hrskript && npm run dev"],
+      "port": 5173
+    },
+    {
+      "name": "dortek-next-cms",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /opt/homebrew/var/www/dortek-next-cms && yarn dev"],
+      "port": 3000
+    },
+    {
+      "name": "sbl-salon-management",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /opt/homebrew/var/www/sbl-salon-management && yarn watch:venia"],
+      "port": 10001
+    },
+    {
+      "name": "sibzi-pwa",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /opt/homebrew/var/www/sibzi/pwa && yarn watch"],
+      "port": 10002
+    }
+  ]
+}

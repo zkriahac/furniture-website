@@ -1,0 +1,8 @@
+.next
+node_modules
+database.db
+.env.local
+.env
+public/media
+.DS_Store
+tsconfig.tsbuildinfo
