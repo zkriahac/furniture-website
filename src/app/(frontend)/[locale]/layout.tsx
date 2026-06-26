@@ -54,7 +54,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const isRtl = locale === 'ar'
   const logoUrl = getImageUrl(settings?.logo)
   const siteName = settings?.siteName || 'Mobilyam'
-  const navMenu = (settings?.navMenu ?? []).map((m) => ({
+  const navMenu = (settings?.navMenu ?? []).map((m: { label?: string; href?: string; children?: { label?: string; href?: string }[] }) => ({
     label: m.label || '',
     href: m.href || '/',
     children: (m.children ?? []).map((c) => ({ label: c.label || '', href: c.href || '/' })),
