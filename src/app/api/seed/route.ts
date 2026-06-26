@@ -36,7 +36,7 @@ async function uploadImage(payload: Awaited<ReturnType<typeof getPayload>>, relP
   return created.id
 }
 
-async function clearCollection(payload: Awaited<ReturnType<typeof getPayload>>, slug: 'media' | 'products' | 'categories') {
+async function clearCollection(payload: Awaited<ReturnType<typeof getPayload>>, slug: 'media' | 'products' | 'categories' | 'posts') {
   const all = await payload.find({ collection: slug, limit: 1000, depth: 0 })
   for (const doc of all.docs) {
     await payload.delete({ collection: slug, id: doc.id }).catch(() => {})

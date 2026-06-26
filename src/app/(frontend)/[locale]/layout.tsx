@@ -61,8 +61,8 @@ export default async function LocaleLayout({ children, params }: Props) {
   }))
   const labels: Record<string, string> = { tr: 'TR', en: 'EN', ar: 'AR' }
   const enabledLocales = (settings?.languages ?? [])
-    .filter((l) => l.enabled !== false && l.code)
-    .map((l) => ({ code: l.code as string, label: labels[l.code as string] || (l.code as string).toUpperCase() }))
+    .filter((l: { enabled?: boolean; code?: string }) => l.enabled !== false && l.code)
+    .map((l: { enabled?: boolean; code?: string }) => ({ code: l.code as string, label: labels[l.code as string] || (l.code as string).toUpperCase() }))
   const navLocales = enabledLocales.length ? enabledLocales : undefined
   const gaId = settings?.gaMeasurementId
   const gtmId = settings?.gtmId
