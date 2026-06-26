@@ -19,6 +19,11 @@ const nextConfig = {
         port: '3000',
         pathname: '/api/media/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'media.alandalosfurnitures.com',
+        pathname: '/**',
+      },
     ],
   },
 }
