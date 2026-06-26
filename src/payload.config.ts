@@ -57,7 +57,12 @@ export default buildConfig({
       ? [
           s3Storage({
             collections: {
-              media: true,
+              media: {
+                generateFileURL: ({ filename, prefix }) => {
+                  const base = process.env.R2_PUBLIC_URL || `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${process.env.R2_BUCKET}`
+                  return prefix ? `${base}/${prefix}/${filename}` : `${base}/${filename}`
+                },
+              },
             },
             bucket: process.env.R2_BUCKET,
             config: {
