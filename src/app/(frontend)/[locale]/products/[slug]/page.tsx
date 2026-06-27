@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, Phone } from 'lucide-react'
 import { getPayload } from '@/lib/getPayload'
-import { getContactInfo } from '@/lib/getGlobals'
+import { getContactInfo, getSiteSettings } from '@/lib/getGlobals'
 import ImageGallery from '@/components/products/ImageGallery'
 import WhatsAppButton from '@/components/products/WhatsAppButton'
 import ShareButtons from '@/components/products/ShareButtons'
@@ -15,6 +15,16 @@ type Props = {
 
 export const revalidate = 2592000 // 30 days
 
+export async function generateStaticParams() {
+  const { routing } = await import('@/i18n/routing')
+  const { getPayload } = await import('@/lib/getPayload')
+  const payload = await getPayload()
+  const result = await payload.find({ collection: 'products', limit: 2000, depth: 0 })
+  return routing.locales.flatMap((locale) =>
+    result.docs.map((p) => ({ locale, slug: p.slug as string })),
+  )
+}
+
 export default async function ProductPage({ params }: Props) {
   const { locale, slug } = await params
   setRequestLocale(locale)
@@ -23,7 +33,7 @@ export default async function ProductPage({ params }: Props) {
   const payload = await getPayload()
   const loc = locale as 'tr' | 'en' | 'ar'
 
-  const [result, contact] = await Promise.all([
+  const [result, contact, settings] = await Promise.all([
     payload.find({
       collection: 'products',
       locale: loc,
@@ -32,7 +42,10 @@ export default async function ProductPage({ params }: Props) {
       limit: 1,
     }),
     getContactInfo(locale),
+    getSiteSettings(locale).catch(() => null),
   ])
+
+  const showPrices = settings?.showPrices !== false
 
   if (!result.docs.length) notFound()
 
@@ -82,22 +95,24 @@ export default async function ProductPage({ params }: Props) {
             {product.title as string}
           </h1>
 
-          <div className="flex items-center gap-3">
-            {displayPrice ? (
-              <>
-                {originalPrice ? (
-                  <span className="text-lg text-gray-400 line-through">
-                    {formatPrice(originalPrice, '$')}
+          {showPrices ? (
+            <div className="flex items-center gap-3">
+              {displayPrice ? (
+                <>
+                  {originalPrice ? (
+                    <span className="text-lg text-gray-400 line-through">
+                      {formatPrice(originalPrice, '$')}
+                    </span>
+                  ) : null}
+                  <span className="text-2xl font-bold text-black">
+                    {formatPrice(displayPrice, '$')}
                   </span>
-                ) : null}
-                <span className="text-2xl font-bold text-black">
-                  {formatPrice(displayPrice, '$')}
-                </span>
-              </>
-            ) : (
-              <p className="text-gray-500 italic">{t('contactForPrice')}</p>
-            )}
-          </div>
+                </>
+              ) : (
+                <p className="text-gray-500 italic">{t('contactForPrice')}</p>
+              )}
+            </div>
+          ) : null}
 
           {product.excerpt ? (
             <p className="text-gray-600 leading-relaxed text-sm max-w-md">

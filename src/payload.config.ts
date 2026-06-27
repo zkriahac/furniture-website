@@ -82,6 +82,10 @@ export default buildConfig({
     pool: {
       connectionString:
         process.env.DATABASE_URI || `postgres://${process.env.USER || 'postgres'}@localhost:5432/mobilyam`,
+      max: 5,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+      allowExitOnIdle: true,
     },
   }),
 

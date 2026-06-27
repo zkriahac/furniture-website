@@ -127,7 +127,7 @@ export default function Navbar({ phone, siteName = 'Mobilyam', logoUrl, menu, lo
                 className="hidden sm:flex items-center gap-1.5 text-sm text-gray-600 hover:text-black"
               >
                 <Phone size={14} />
-                <span>{phone}</span>
+                <span dir="ltr">{phone}</span>
               </a>
             ) : null}
             <LanguageSwitcher locales={locales} />

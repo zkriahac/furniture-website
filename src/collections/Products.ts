@@ -73,6 +73,7 @@ export const Products: CollectionConfig = {
       type: 'relationship',
       relationTo: 'categories',
       required: true,
+      index: true,
       admin: { position: 'sidebar' },
     },
     {
@@ -95,6 +96,7 @@ export const Products: CollectionConfig = {
       name: 'featured',
       type: 'checkbox',
       defaultValue: false,
+      index: true,
       admin: { position: 'sidebar' },
     },
     {

@@ -61,7 +61,7 @@ export default async function ContactPage({ params }: Props) {
                 <div>
                   <p className="text-xs font-medium text-gray-500 mb-0.5">{label}</p>
                   {href ? (
-                    <a href={href} className="text-sm text-black hover:underline">
+                    <a href={href} dir={href.startsWith('tel:') ? 'ltr' : undefined} className="text-sm text-black hover:underline">
                       {value}
                     </a>
                   ) : (

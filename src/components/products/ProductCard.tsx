@@ -13,6 +13,7 @@ type Props = {
   imageAlt?: string
   locale: string
   currency?: string
+  showPrices?: boolean
 }
 
 export default function ProductCard({
@@ -25,17 +26,19 @@ export default function ProductCard({
   imageAlt,
   locale,
   currency = '₺',
+  showPrices = true,
 }: Props) {
   const displayPrice = salePrice ?? price
 
   return (
     <Link href={`/${locale}/products/${slug}`} className="group block">
-      <div className="relative bg-surface rounded-2xl overflow-hidden aspect-[4/3] mb-3">
+      <div className="relative bg-surface rounded-2xl overflow-hidden aspect-[3/4] mb-3">
         {imageUrl ? (
           <Image
             src={imageUrl}
             alt={imageAlt || title}
             fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
@@ -55,22 +58,24 @@ export default function ProductCard({
         <h3 className="font-medium text-sm text-black mb-1 group-hover:underline line-clamp-2">
           {title}
         </h3>
-        <div className="flex items-center gap-2">
-          {displayPrice ? (
-            <>
-              {salePrice && price && salePrice < price && (
-                <span className="text-xs text-gray-400 line-through">
-                  {formatPrice(price, currency)}
+        {showPrices ? (
+          <div className="flex items-center gap-2">
+            {displayPrice ? (
+              <>
+                {salePrice && price && salePrice < price && (
+                  <span className="text-xs text-gray-400 line-through">
+                    {formatPrice(price, currency)}
+                  </span>
+                )}
+                <span className="text-sm font-semibold text-black">
+                  {formatPrice(displayPrice, currency)}
                 </span>
-              )}
-              <span className="text-sm font-semibold text-black">
-                {formatPrice(displayPrice, currency)}
-              </span>
-            </>
-          ) : (
-            <span className="text-xs text-gray-500 italic">Fiyat için iletişime geçin</span>
-          )}
-        </div>
+              </>
+            ) : (
+              <span className="text-xs text-gray-500 italic">Fiyat için iletişime geçin</span>
+            )}
+          </div>
+        ) : null}
       </div>
     </Link>
   )

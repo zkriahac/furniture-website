@@ -1,7 +1,8 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { unstable_cache } from 'next/cache'
 import { routing } from '@/i18n/routing'
 import { getPayload } from '@/lib/getPayload'
-import { getHomepage, getContactInfo } from '@/lib/getGlobals'
+import { getHomepage, getSiteSettings } from '@/lib/getGlobals'
 import HeroSlider from '@/components/home/HeroSlider'
 import CategoryCircles from '@/components/home/CategoryCircles'
 import PromoBanners from '@/components/home/PromoBanners'
@@ -13,6 +14,43 @@ import Newsletter from '@/components/home/Newsletter'
 import NewsSection from '@/components/home/NewsSection'
 import SectionRenderer from '@/components/home/SectionRenderer'
 import { getImageUrl } from '@/lib/utils'
+
+const HOME_CACHE = { revalidate: 3600, tags: ['home-data'] }
+
+const getCachedHomeCategories = unstable_cache(
+  async (locale: string) => {
+    const payload = await getPayload()
+    return payload.find({ collection: 'categories', locale: locale as 'tr' | 'en' | 'ar', limit: 8, depth: 1 })
+  },
+  ['home-categories'],
+  HOME_CACHE,
+)
+
+const getCachedFeaturedProducts = unstable_cache(
+  async (locale: string) => {
+    const payload = await getPayload()
+    return payload.find({
+      collection: 'products',
+      locale: locale as 'tr' | 'en' | 'ar',
+      where: { featured: { equals: true } },
+      limit: 8,
+      depth: 1,
+    })
+  },
+  ['home-featured'],
+  HOME_CACHE,
+)
+
+const getCachedLatestPosts = unstable_cache(
+  async (locale: string) => {
+    const payload = await getPayload()
+    return payload
+      .find({ collection: 'posts', locale: locale as 'tr' | 'en' | 'ar', sort: '-publishedAt', limit: 3, depth: 1 })
+      .catch(() => ({ docs: [] as Array<Record<string, unknown>> }))
+  },
+  ['home-posts'],
+  HOME_CACHE,
+)
 
 type Props = {
   params: Promise<{ locale: string }>
@@ -29,26 +67,15 @@ export default async function HomePage({ params }: Props) {
   setRequestLocale(locale)
   const t = await getTranslations()
 
-  const payload = await getPayload()
-
-  const [categoriesResult, featuredResult, homepage, postsResult] = await Promise.all([
-    payload.find({ collection: 'categories', locale: locale as 'tr' | 'en' | 'ar', limit: 8, depth: 1 }),
-    payload.find({
-      collection: 'products',
-      locale: locale as 'tr' | 'en' | 'ar',
-      where: { featured: { equals: true } },
-      limit: 8,
-      depth: 2,
-    }),
+  const [categoriesResult, featuredResult, homepage, postsResult, settings] = await Promise.all([
+    getCachedHomeCategories(locale),
+    getCachedFeaturedProducts(locale),
     getHomepage(locale),
-    payload.find({
-      collection: 'posts',
-      locale: locale as 'tr' | 'en' | 'ar',
-      sort: '-publishedAt',
-      limit: 3,
-      depth: 1,
-    }).catch(() => ({ docs: [] as Array<Record<string, unknown>> })),
+    getCachedLatestPosts(locale),
+    getSiteSettings(locale).catch(() => null),
   ])
+
+  const showPrices = settings?.showPrices !== false
 
   const latestPosts = postsResult.docs.map((p: Record<string, unknown>) => ({
     id: String(p.id),
@@ -133,7 +160,7 @@ export default async function HomePage({ params }: Props) {
 
   const sections = (homepage?.sections ?? []) as Array<{ blockType: string; [k: string]: unknown }>
   if (sections.length > 0) {
-    return <SectionRenderer sections={sections} locale={locale as 'tr' | 'en' | 'ar'} />
+    return <SectionRenderer sections={sections} locale={locale as 'tr' | 'en' | 'ar'} showPrices={showPrices} />
   }
 
   return (
@@ -141,7 +168,7 @@ export default async function HomePage({ params }: Props) {
       <HeroSlider slides={heroSlides} />
       <CategoryCircles categories={categories} />
       <PromoBanners banners={banners} />
-      <FeaturedProducts products={featured} />
+      <FeaturedProducts products={featured} showPrices={showPrices} />
       <BrandShowcase title={t('home.brandsTitle')} brands={brands} />
       <NewsSection posts={latestPosts} locale={locale} />
       <Testimonials items={testimonials} />

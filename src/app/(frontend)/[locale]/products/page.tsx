@@ -1,10 +1,57 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
+import { unstable_cache } from 'next/cache'
 import { routing } from '@/i18n/routing'
 import { getPayload } from '@/lib/getPayload'
+import { getSiteSettings } from '@/lib/getGlobals'
 import ProductGrid from '@/components/products/ProductGrid'
 import { Suspense } from 'react'
+
+const CACHE_OPTS = { revalidate: 3600, tags: ['products'] }
+
+// Counts per category — cached 1h, avoids full table scan on every request
+const getCachedProductCounts = unstable_cache(
+  async () => {
+    const payload = await getPayload()
+    const result = await payload.find({ collection: 'products', limit: 2000, depth: 1 })
+    const counts: Record<string, number> = {}
+    for (const p of result.docs) {
+      const cat = p.category as { slug?: string } | null
+      if (!cat?.slug) continue
+      counts[cat.slug] = (counts[cat.slug] ?? 0) + 1
+    }
+    return { counts, total: result.totalDocs }
+  },
+  ['product-category-counts'],
+  CACHE_OPTS,
+)
+
+// Product listing per locale+category — cached 1h (searchParams makes this page dynamic)
+const getCachedProducts = unstable_cache(
+  async (locale: string, category?: string) => {
+    const payload = await getPayload()
+    return payload.find({
+      collection: 'products',
+      locale: locale as 'tr' | 'en' | 'ar',
+      where: category ? { 'category.slug': { equals: category } } : {},
+      limit: 100,
+      depth: 1,
+    })
+  },
+  ['products-listing'],
+  CACHE_OPTS,
+)
+
+// Category list per locale — cached 1h
+const getCachedCategories = unstable_cache(
+  async (locale: string) => {
+    const payload = await getPayload()
+    return payload.find({ collection: 'categories', locale: locale as 'tr' | 'en' | 'ar', limit: 20 })
+  },
+  ['categories-list'],
+  { revalidate: 3600, tags: ['categories'] },
+)
 
 type Props = {
   params: Promise<{ locale: string }>
@@ -23,20 +70,15 @@ export default async function ProductsPage({ params, searchParams }: Props) {
   setRequestLocale(locale)
   const t = await getTranslations('products')
 
-  const payload = await getPayload()
-  const loc = locale as 'tr' | 'en' | 'ar'
+  const [productsResult, categoriesResult, { counts: countByCategorySlug, total: totalCount }, settings] =
+    await Promise.all([
+      getCachedProducts(locale, category),
+      getCachedCategories(locale),
+      getCachedProductCounts(),
+      getSiteSettings(locale).catch(() => null),
+    ])
 
-  const [productsResult, categoriesResult, allProductsResult] = await Promise.all([
-    payload.find({
-      collection: 'products',
-      locale: loc,
-      where: category ? { 'category.slug': { equals: category } } : {},
-      limit: 100,
-      depth: 2,
-    }),
-    payload.find({ collection: 'categories', locale: loc, limit: 20 }),
-    payload.find({ collection: 'products', limit: 1000, depth: 1 }),
-  ])
+  const showPrices = settings?.showPrices !== false
 
   const products = productsResult.docs.map((p) => ({
     id: String(p.id),
@@ -48,19 +90,11 @@ export default async function ProductsPage({ params, searchParams }: Props) {
     images: (p.images as { image: unknown }[] | undefined) ?? [],
   }))
 
-  const countByCategorySlug = new Map<string, number>()
-  for (const p of allProductsResult.docs) {
-    const cat = p.category as { slug?: string } | null
-    if (!cat?.slug) continue
-    countByCategorySlug.set(cat.slug, (countByCategorySlug.get(cat.slug) ?? 0) + 1)
-  }
-
   const categories = categoriesResult.docs.map((c) => ({
     slug: c.slug || '',
     name: c.name || '',
-    count: countByCategorySlug.get(c.slug || '') ?? 0,
+    count: countByCategorySlug[c.slug || ''] ?? 0,
   }))
-  const totalCount = allProductsResult.totalDocs
 
   return (
     <>
@@ -116,7 +150,7 @@ export default async function ProductsPage({ params, searchParams }: Props) {
 
           {/* Grid */}
           <Suspense>
-            <ProductGrid products={products} />
+            <ProductGrid products={products} showPrices={showPrices} />
           </Suspense>
         </div>
       </div>

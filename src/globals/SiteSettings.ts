@@ -19,6 +19,12 @@ export const SiteSettings: GlobalConfig = {
             { name: 'tagline', type: 'text', localized: true },
             { name: 'logo', type: 'upload', relationTo: 'media', admin: { description: 'Header logo (transparent PNG/SVG preferred)' } },
             { name: 'favicon', type: 'upload', relationTo: 'media', admin: { description: 'Browser tab icon' } },
+            {
+              name: 'showPrices',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: { description: 'Show prices on product cards and detail pages. Uncheck to hide all prices.' },
+            },
           ],
         },
         {

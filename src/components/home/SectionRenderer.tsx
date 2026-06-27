@@ -22,9 +22,10 @@ type Section = {
 type Props = {
   sections: Section[]
   locale: Locale
+  showPrices?: boolean
 }
 
-export default async function SectionRenderer({ sections, locale }: Props) {
+export default async function SectionRenderer({ sections, locale, showPrices = true }: Props) {
   const payload = await getPayload()
 
   const rendered = await Promise.all(
@@ -113,7 +114,7 @@ export default async function SectionRenderer({ sections, locale }: Props) {
                   locale,
                   where: { id: { in: manualIds } },
                   limit: manualIds.length,
-                  depth: 2,
+                  depth: 1,
                 })
               : { docs: [] }
           } else if (mode === 'newest') {
@@ -122,7 +123,7 @@ export default async function SectionRenderer({ sections, locale }: Props) {
               locale,
               sort: '-createdAt',
               limit,
-              depth: 2,
+              depth: 1,
             })
           } else {
             result = await payload.find({
@@ -130,7 +131,7 @@ export default async function SectionRenderer({ sections, locale }: Props) {
               locale,
               where: { featured: { equals: true } },
               limit,
-              depth: 2,
+              depth: 1,
             })
           }
 
@@ -143,7 +144,7 @@ export default async function SectionRenderer({ sections, locale }: Props) {
             isNew: p.isNew ?? false,
             images: (p.images as { image: unknown }[] | undefined) ?? [],
           }))
-          return <FeaturedProducts key={key} products={products} />
+          return <FeaturedProducts key={key} products={products} showPrices={showPrices} />
         }
 
         case 'brandShowcase': {

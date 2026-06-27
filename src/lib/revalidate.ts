@@ -26,5 +26,8 @@ export function revalidateGlobals() {
   for (const loc of LOCALES) {
     revalidatePath(`/${loc}`, 'layout')
   }
-  revalidateTag('globals')
+  revalidateTag('homepage')
+  revalidateTag('contact-info')
+  revalidateTag('site-settings')
+  revalidateTag('home-data')
 }

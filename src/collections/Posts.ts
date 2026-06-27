@@ -34,6 +34,7 @@ export const Posts: CollectionConfig = {
     {
       name: 'publishedAt',
       type: 'date',
+      index: true,
       admin: { position: 'sidebar', date: { pickerAppearance: 'dayAndTime' } },
       defaultValue: () => new Date(),
     },

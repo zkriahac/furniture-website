@@ -2,13 +2,14 @@ import Link from 'next/link'
 import { getTranslations, getLocale } from 'next-intl/server'
 
 type Props = {
+  siteName?: string
   description?: string | null
   phone?: string
   email?: string
   address?: string | null
 }
 
-export default async function Footer({ description }: Props) {
+export default async function Footer({ siteName = 'Mobilyam', description }: Props) {
   const t = await getTranslations()
   const locale = await getLocale()
 
@@ -52,7 +53,7 @@ export default async function Footer({ description }: Props) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           <div className="md:col-span-1">
-            <h2 className="font-heading text-2xl font-bold mb-4 text-black">Mobilyam</h2>
+            <h2 className="font-heading text-2xl font-bold mb-4 text-black">{siteName}</h2>
             {description ? (
               <p className="text-gray-500 text-sm leading-relaxed">{description}</p>
             ) : null}
@@ -75,7 +76,7 @@ export default async function Footer({ description }: Props) {
         </div>
 
         <div className="border-t border-gray-100 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
-          <p>© {new Date().getFullYear()} Mobilyam. {t('footer.rights')}</p>
+          <p>© {new Date().getFullYear()} {siteName}. {t('footer.rights')}</p>
         </div>
       </div>
     </footer>

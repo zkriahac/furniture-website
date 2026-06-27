@@ -17,9 +17,10 @@ type Product = {
 
 type Props = {
   products: Product[]
+  showPrices?: boolean
 }
 
-export default async function FeaturedProducts({ products }: Props) {
+export default async function FeaturedProducts({ products, showPrices = true }: Props) {
   const t = await getTranslations()
   const locale = await getLocale()
 
@@ -41,7 +42,7 @@ export default async function FeaturedProducts({ products }: Props) {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {products.map((p) => {
             const firstImage = p.images?.[0]?.image
             const imageUrl = getImageUrl(firstImage)
@@ -55,6 +56,7 @@ export default async function FeaturedProducts({ products }: Props) {
                 isNew={p.isNew}
                 imageUrl={imageUrl}
                 locale={locale}
+                showPrices={showPrices}
               />
             )
           })}
