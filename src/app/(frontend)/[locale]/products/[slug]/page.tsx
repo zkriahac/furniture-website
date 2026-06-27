@@ -15,15 +15,6 @@ type Props = {
 
 export const revalidate = 2592000 // 30 days
 
-export async function generateStaticParams() {
-  const { routing } = await import('@/i18n/routing')
-  const { getPayload } = await import('@/lib/getPayload')
-  const payload = await getPayload()
-  const result = await payload.find({ collection: 'products', limit: 2000, depth: 0 })
-  return routing.locales.flatMap((locale) =>
-    result.docs.map((p) => ({ locale, slug: p.slug as string })),
-  )
-}
 
 export default async function ProductPage({ params }: Props) {
   const { locale, slug } = await params
